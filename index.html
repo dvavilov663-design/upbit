@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AsiaCrypto Exchange</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- TradingView Widget -->
+  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+  <style>
+    .glow {
+      text-shadow: 0 0 10px rgba(16, 185, 129, 0.8), 0 0 20px rgba(16, 185, 129, 0.6);
+    }
+    .modal { display: none; position: fixed; z-index: 50; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; }
+    .modal-content { background: #1f2937; padding: 2rem; border-radius: 1rem; max-width: 500px; width: 100%; }
+  </style>
+</head>
+<body class="bg-gray-950 text-white flex flex-col min-h-screen font-sans">
+
+  <!-- Header -->
+  <header class="flex flex-col md:flex-row md:justify-between md:items-center px-4 md:px-8 py-4 bg-gray-900 border-b border-gray-800 gap-4 md:gap-0">
+    <h1 class="text-2xl md:text-3xl font-bold text-emerald-400 glow tracking-wide">AsiaCrypto</h1>
+    <nav class="flex flex-wrap gap-4 text-gray-300 font-medium">
+      <a href="#" class="hover:text-emerald-400 transition">Торги</a>
+      <a href="#" class="hover:text-emerald-400 transition" onclick="openConverter()">Конвертация</a>
+      <a href="#" class="hover:text-emerald-400 transition">Кошелек</a>
+      <a href="#" class="hover:text-emerald-400 transition">Профиль</a>
+    </nav>
+    <div class="text-gray-300 font-semibold text-sm md:text-base">💰 Баланс: <span id="balance">10000</span> USDT</div>
+  </header>
+
+  <!-- Main -->
+  <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 p-4">
+
+    <!-- Pairs on the left -->
+    <div class="lg:col-span-3 bg-gray-900 rounded-2xl shadow-lg p-4 border border-gray-800 overflow-y-auto max-h-[calc(100vh-160px)]">
+      <h2 class="text-lg md:text-xl font-semibold mb-4 text-emerald-400">🔥 Все пары Binance</h2>
+      <table id="pairsTable" class="w-full text-left text-gray-300 text-xs md:text-sm">
+        <thead class="uppercase text-xs text-gray-400 sticky top-0 bg-gray-900">
+          <tr class="border-b border-gray-700">
+            <th class="py-2">Пара</th>
+            <th class="py-2">Цена</th>
+            <th class="py-2">24ч</th>
+          </tr>
+        </thead>
+        <tbody id="pairsBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Chart in the center -->
+    <div class="lg:col-span-6 bg-gray-900 rounded-2xl shadow-lg p-4 border border-gray-800 flex flex-col">
+      <h2 class="text-lg md:text-2xl font-semibold mb-4 text-emerald-400">📈 График</h2>
+      <div id="tradingview_chart" class="flex-1 h-[400px] md:h-[600px]"></div>
+    </div>
+
+    <!-- Right column with top assets -->
+    <div class="lg:col-span-3 bg-gray-900 rounded-2xl shadow-lg p-4 border border-gray-800 overflow-y-auto max-h-[calc(100vh-160px)]">
+      <h2 class="text-lg md:text-xl font-semibold mb-4 text-emerald-400">🏆 Топ активы</h2>
+      <div id="topAssets" class="space-y-3 text-sm md:text-base"></div>
+    </div>
+
+  </main>
+
+  <!-- Modal Converter -->
+  <div id="converterModal" class="modal flex">
+    <div class="modal-content w-[90%] md:w-auto">
+      <h2 class="text-xl md:text-2xl font-semibold mb-6 text-emerald-400">💱 Конвертация</h2>
+      <form class="space-y-5">
+        <div>
+          <label class="text-sm text-gray-400">Из</label>
+          <select id="fromCurrency" class="w-full mt-1 p-3 bg-gray-800 rounded-lg text-white border border-gray-700"></select>
+        </div>
+        <div>
+          <label class="text-sm text-gray-400">В</label>
+          <select id="toCurrency" class="w-full mt-1 p-3 bg-gray-800 rounded-lg text-white border border-gray-700"></select>
+        </div>
+        <div>
+          <label class="text-sm text-gray-400">Сумма</label>
+          <input type="number" placeholder="Введите сумму" class="w-full mt-1 p-3 rounded-lg bg-gray-800 text-white border border-gray-700" />
+        </div>
+        <div class="flex flex-col md:flex-row gap-4">
+          <button type="button" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-semibold text-lg">Конвертировать</button>
+          <button type="button" onclick="closeConverter()" class="flex-1 py-3 bg-gray-600 hover:bg-gray-500 rounded-xl font-semibold text-lg">Закрыть</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-gray-900 border-t border-gray-800 text-gray-400 text-center py-6 text-sm md:text-base">
+    <p>&copy; 2025 AsiaCrypto. Все права защищены.</p>
+    <div class="flex justify-center gap-6 mt-3 text-gray-500 text-xs md:text-sm">
+      <a href="#" class="hover:text-emerald-400 transition">О нас</a>
+      <a href="#" class="hover:text-emerald-400 transition">Поддержка</a>
+      <a href="#" class="hover:text-emerald-400 transition">API</a>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script>
+    let balance = 10000;
+    document.getElementById('balance').innerText = balance;
+
+    // Загружаем все пары с Binance API
+    async function loadPairs() {
+      const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
+      const data = await res.json();
+      const tbody = document.getElementById('pairsBody');
+      const fromSelect = document.getElementById('fromCurrency');
+      const toSelect = document.getElementById('toCurrency');
+      const topAssetsDiv = document.getElementById('topAssets');
+      tbody.innerHTML = '';
+      topAssetsDiv.innerHTML = '';
+
+      // отобразим только USDT пары в левой таблице и топ-10 в правой колонке
+      const usdtPairs = data.filter(item => item.symbol.endsWith('USDT'));
+      usdtPairs.forEach((item, i) => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-gray-800/50 transition cursor-pointer';
+        tr.innerHTML = `
+          <td class='py-2 font-medium text-emerald-300' onclick="loadTradingView('${item.symbol}')">${item.symbol}</td>
+          <td class='py-2'>${parseFloat(item.lastPrice).toFixed(4)}</td>
+          <td class='py-2 ${item.priceChangePercent >= 0 ? 'text-emerald-400' : 'text-red-400'}'>${item.priceChangePercent}%</td>
+        `;
+        tbody.appendChild(tr);
+
+        if (i < 10) {
+          const div = document.createElement('div');
+          div.className = 'flex justify-between border-b border-gray-700 pb-1';
+          div.innerHTML = `
+            <span class='text-emerald-300 font-medium'>${item.symbol}</span>
+            <span>${parseFloat(item.lastPrice).toFixed(2)}</span>
+            <span class='${item.priceChangePercent >= 0 ? 'text-emerald-400' : 'text-red-400'}'>${item.priceChangePercent}%</span>
+          `;
+          topAssetsDiv.appendChild(div);
+        }
+
+        let opt1 = document.createElement('option');
+        opt1.value = item.symbol.replace('USDT','');
+        opt1.text = item.symbol.replace('USDT','');
+        fromSelect.appendChild(opt1.cloneNode(true));
+        toSelect.appendChild(opt1);
+      });
+    }
+
+    // Подключаем TradingView график
+    function loadTradingView(symbol){
+      document.getElementById('tradingview_chart').innerHTML = "";
+      new TradingView.widget({
+        "width": "100%",
+        "height": 600,
+        "symbol": `BINANCE:${symbol}`,
+        "interval": "60",
+        "timezone": "Etc/UTC",
+        "theme": "dark",
+        "style": "1",
+        "locale": "ru",
+        "toolbar_bg": "#1f2937",
+        "enable_publishing": false,
+        "hide_top_toolbar": false,
+        "hide_legend": false,
+        "save_image": false,
+        "container_id": "tradingview_chart"
+      });
+    }
+
+    function openConverter(){
+      document.getElementById('converterModal').style.display = 'flex';
+    }
+    function closeConverter(){
+      document.getElementById('converterModal').style.display = 'none';
+    }
+
+    loadPairs();
+  </script>
+
+</body>
+</html>
