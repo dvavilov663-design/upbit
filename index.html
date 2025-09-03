@@ -5,14 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AsiaCrypto Exchange</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- TradingView Widget -->
-  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
   <style>
     .glow {
       text-shadow: 0 0 10px rgba(16, 185, 129, 0.8), 0 0 20px rgba(16, 185, 129, 0.6);
     }
     .modal { display: none; position: fixed; z-index: 50; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; }
     .modal-content { background: #1f2937; padding: 2rem; border-radius: 1rem; max-width: 500px; width: 100%; }
+    body.light { background: #f5f5f5; color: #111; }
+    body.light header, body.light footer, body.light .bg-gray-900 { background: #fff !important; color: #111 !important; }
+    body.light .text-emerald-400 { color: #10b981 !important; }
   </style>
 </head>
 <body class="bg-gray-950 text-white flex flex-col min-h-screen font-sans">
@@ -26,7 +27,10 @@
       <a href="#" class="hover:text-emerald-400 transition">Кошелек</a>
       <a href="#" class="hover:text-emerald-400 transition">Профиль</a>
     </nav>
-    <div class="text-gray-300 font-semibold text-sm md:text-base">💰 Баланс: <span id="balance">10000</span> USDT</div>
+    <div class="flex items-center gap-4">
+      <div class="text-gray-300 font-semibold text-sm md:text-base">💰 Баланс: <span id="balance">10000</span> USDT</div>
+      <button onclick="toggleTheme()" class="px-3 py-1 rounded-md border border-gray-600 text-sm">🌙/☀️</button>
+    </div>
   </header>
 
   <!-- Main -->
@@ -50,7 +54,8 @@
     <!-- Chart in the center -->
     <div class="lg:col-span-6 bg-gray-900 rounded-2xl shadow-lg p-4 border border-gray-800 flex flex-col">
       <h2 class="text-lg md:text-2xl font-semibold mb-4 text-emerald-400">📈 График</h2>
-      <div id="tradingview_chart" class="flex-1 h-[400px] md:h-[600px]"></div>
+      <iframe id="tradingview_iframe" src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&interval=60&theme=dark&style=1&locale=ru"
+        style="width:100%; height:600px;" frameborder="0" allowtransparency="true" scrolling="no"></iframe>
     </div>
 
     <!-- Right column with top assets -->
@@ -112,7 +117,6 @@
       tbody.innerHTML = '';
       topAssetsDiv.innerHTML = '';
 
-      // отобразим только USDT пары в левой таблице и топ-10 в правой колонке
       const usdtPairs = data.filter(item => item.symbol.endsWith('USDT'));
       usdtPairs.forEach((item, i) => {
         const tr = document.createElement('tr');
@@ -143,32 +147,27 @@
       });
     }
 
-    // Подключаем TradingView график
+    // Загружаем график TradingView через iframe
     function loadTradingView(symbol){
-      document.getElementById('tradingview_chart').innerHTML = "";
-      new TradingView.widget({
-        "width": "100%",
-        "height": 600,
-        "symbol": `BINANCE:${symbol}`,
-        "interval": "60",
-        "timezone": "Etc/UTC",
-        "theme": "dark",
-        "style": "1",
-        "locale": "ru",
-        "toolbar_bg": "#1f2937",
-        "enable_publishing": false,
-        "hide_top_toolbar": false,
-        "hide_legend": false,
-        "save_image": false,
-        "container_id": "tradingview_chart"
-      });
+      const theme = document.body.classList.contains('light') ? 'light' : 'dark';
+      const iframe = document.getElementById('tradingview_iframe');
+      iframe.src = `https://s.tradingview.com/widgetembed/?symbol=BINANCE:${symbol}&interval=60&theme=${theme}&style=1&locale=ru`;
     }
 
-    function openConverter(){
-      document.getElementById('converterModal').style.display = 'flex';
-    }
-    function closeConverter(){
-      document.getElementById('converterModal').style.display = 'none';
+    // Открыть/закрыть модальное окно
+    function openConverter(){ document.getElementById('converterModal').style.display = 'flex'; }
+    function closeConverter(){ document.getElementById('converterModal').style.display = 'none'; }
+
+    // Переключение темы
+    function toggleTheme(){
+      document.body.classList.toggle('light');
+      const iframe = document.getElementById('tradingview_iframe');
+      let currentSrc = iframe.src;
+      if(currentSrc.includes('theme=dark')){
+        iframe.src = currentSrc.replace('theme=dark','theme=light');
+      } else {
+        iframe.src = currentSrc.replace('theme=light','theme=dark');
+      }
     }
 
     loadPairs();
