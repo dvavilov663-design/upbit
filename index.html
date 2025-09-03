@@ -3,41 +3,61 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Upbit Exchange</title>
+  <title>Ubbit Exchange</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    .modal { display: none; position: fixed; z-index: 50; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; }
-    .modal-content { background: #ffffff; padding: 2rem; border-radius: 1rem; max-width: 500px; width: 100%; color: #0f172a; }
-    body.light { background: #f8fafc; color: #0f172a; }
-    body.light header, body.light footer, body.light .card { background: #fff !important; color: #0f172a !important; }
+    /* Анимированный фон */
+    body {
+      background: linear-gradient(270deg, #0f172a, #1e3a8a, #06b6d4, #0f172a);
+      background-size: 800% 800%;
+      animation: gradientBG 20s ease infinite;
+    }
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    /* Glass эффект */
+    .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.15); }
+    /* Модалка */
+    .modal { display: none; position: fixed; z-index: 50; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; backdrop-filter: blur(6px); }
+    .modal-content { background: rgba(255,255,255,0.95); padding: 2rem; border-radius: 1rem; max-width: 500px; width: 100%; color: #0f172a; box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: fadeIn 0.4s ease; }
+    /* Кнопки с градиентом */
+    .btn-gradient { background: linear-gradient(90deg,#3b82f6,#06b6d4,#3b82f6); background-size: 200% 200%; animation: gradientMove 4s infinite alternate; transition: all 0.3s ease; }
+    .btn-gradient:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 0 25px rgba(6,182,212,0.6); }
+    @keyframes gradientMove { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    /* Светлая тема */
+    body.light { background: #f8fafc; color: #0f172a; animation: none; }
+    body.light .glass { background: rgba(255,255,255,0.85) !important; color: #0f172a !important; border-color: rgba(0,0,0,0.1) !important; }
   </style>
 </head>
-<body class="bg-gradient-to-br from-blue-950 via-blue-900 to-blue-800 text-white flex flex-col min-h-screen font-sans">
+<body class="text-white flex flex-col min-h-screen font-sans">
 
   <!-- Header -->
-  <header class="flex flex-col md:flex-row md:justify-between md:items-center px-4 md:px-8 py-4 bg-blue-900 border-b border-blue-700 gap-4 md:gap-0">
-    <h1 class="text-2xl md:text-3xl font-bold text-blue-300 tracking-wide">Ubbit</h1>
+  <header class="glass flex flex-col md:flex-row md:justify-between md:items-center px-4 md:px-8 py-4 gap-4 md:gap-0">
+    <h1 class="text-2xl md:text-3xl font-bold text-cyan-300 tracking-wide drop-shadow-lg">Ubbit</h1>
     <nav class="flex flex-wrap gap-4 text-gray-200 font-medium">
-      <a href="#" class="hover:text-blue-300 transition">Торги</a>
-      <a href="#" class="hover:text-blue-300 transition" onclick="openConverter()">Конвертация</a>
-      <a href="#" class="hover:text-blue-300 transition">Кошелек</a>
-      <a href="#" class="hover:text-blue-300 transition">Профиль</a>
+      <a href="#" class="hover:text-cyan-300 transition">Торги</a>
+      <a href="#" class="hover:text-cyan-300 transition" onclick="openConverter()">Конвертация</a>
+      <a href="#" class="hover:text-cyan-300 transition">Кошелек</a>
+      <a href="#" class="hover:text-cyan-300 transition">Профиль</a>
     </nav>
     <div class="flex items-center gap-4">
       <div class="text-gray-200 font-semibold text-sm md:text-base">💰 Баланс: <span id="balance">10000</span> USDT</div>
-      <button onclick="toggleTheme()" class="px-3 py-1 rounded-md border border-blue-400 text-sm bg-blue-800 hover:bg-blue-700 transition">🌙/☀️</button>
+      <button onclick="toggleTheme()" class="btn-gradient px-3 py-1 rounded-md text-sm text-white font-semibold">🌙/☀️</button>
     </div>
   </header>
 
   <!-- Main -->
-  <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 p-4">
+  <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 p-6">
 
-    <!-- Pairs on the left -->
-    <div class="lg:col-span-3 card bg-blue-900 rounded-2xl shadow-lg p-4 border border-blue-700 overflow-y-auto max-h-[calc(100vh-160px)]">
-      <h2 class="text-lg md:text-xl font-semibold mb-4 text-blue-300">🔥 Все пары Binance</h2>
+    <!-- Pairs -->
+    <div class="lg:col-span-3 glass rounded-2xl shadow-xl p-4 overflow-y-auto max-h-[calc(100vh-160px)] animate-fadeIn">
+      <h2 class="text-lg md:text-xl font-semibold mb-4 text-cyan-300">🔥 Все пары Binance</h2>
       <table id="pairsTable" class="w-full text-left text-gray-200 text-xs md:text-sm">
-        <thead class="uppercase text-xs text-gray-400 sticky top-0 bg-blue-900">
-          <tr class="border-b border-blue-700">
+        <thead class="uppercase text-xs text-gray-400 sticky top-0 glass">
+          <tr class="border-b border-cyan-500/30">
             <th class="py-2">Пара</th>
             <th class="py-2">Цена</th>
             <th class="py-2">24ч</th>
@@ -47,24 +67,24 @@
       </table>
     </div>
 
-    <!-- Chart in the center -->
-    <div class="lg:col-span-6 card bg-blue-900 rounded-2xl shadow-lg p-4 border border-blue-700 flex flex-col">
-      <h2 class="text-lg md:text-2xl font-semibold mb-4 text-blue-300">📈 График</h2>
+    <!-- Chart -->
+    <div class="lg:col-span-6 glass rounded-2xl shadow-xl p-4 flex flex-col animate-fadeIn">
+      <h2 class="text-lg md:text-2xl font-semibold mb-4 text-cyan-300">📈 График</h2>
       <iframe id="tradingview_iframe" src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&interval=60&theme=dark&style=1&locale=ru"
-        style="width:100%; height:600px;" frameborder="0" allowtransparency="true" scrolling="no"></iframe>
+        style="width:100%; height:600px; border-radius: 1rem;" frameborder="0" allowtransparency="true" scrolling="no"></iframe>
     </div>
 
-    <!-- Right column with top assets -->
-    <div class="lg:col-span-3 card bg-blue-900 rounded-2xl shadow-lg p-4 border border-blue-700 overflow-y-auto max-h-[calc(100vh-160px)]">
-      <h2 class="text-lg md:text-xl font-semibold mb-4 text-blue-300">🏆 Топ активы</h2>
+    <!-- Right column -->
+    <div class="lg:col-span-3 glass rounded-2xl shadow-xl p-4 overflow-y-auto max-h-[calc(100vh-160px)] animate-fadeIn">
+      <h2 class="text-lg md:text-xl font-semibold mb-4 text-cyan-300">🏆 Топ активы</h2>
       <div id="topAssets" class="space-y-3 text-sm md:text-base"></div>
     </div>
 
   </main>
 
-  <!-- Modal Converter -->
+  <!-- Converter -->
   <div id="converterModal" class="modal flex">
-    <div class="modal-content w-[90%] md:w-auto">
+    <div class="modal-content">
       <h2 class="text-xl md:text-2xl font-semibold mb-6 text-blue-600">💱 Конвертация</h2>
       <form class="space-y-5">
         <div>
@@ -80,7 +100,7 @@
           <input type="number" placeholder="Введите сумму" class="w-full mt-1 p-3 rounded-lg bg-gray-100 border border-gray-300" />
         </div>
         <div class="flex flex-col md:flex-row gap-4">
-          <button type="button" class="flex-1 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold text-lg">Конвертировать</button>
+          <button type="button" class="flex-1 py-3 btn-gradient text-white rounded-xl font-semibold text-lg">Конвертировать</button>
           <button type="button" onclick="closeConverter()" class="flex-1 py-3 bg-gray-400 hover:bg-gray-300 text-black rounded-xl font-semibold text-lg">Закрыть</button>
         </div>
       </form>
@@ -88,12 +108,12 @@
   </div>
 
   <!-- Footer -->
-  <footer class="bg-blue-900 border-t border-blue-700 text-gray-300 text-center py-6 text-sm md:text-base">
+  <footer class="glass text-gray-300 text-center py-6 text-sm md:text-base mt-6">
     <p>&copy; 2025 Ubbit. Все права защищены.</p>
     <div class="flex justify-center gap-6 mt-3 text-gray-400 text-xs md:text-sm">
-      <a href="#" class="hover:text-blue-300 transition">О нас</a>
-      <a href="#" class="hover:text-blue-300 transition">Поддержка</a>
-      <a href="#" class="hover:text-blue-300 transition">API</a>
+      <a href="#" class="hover:text-cyan-300 transition">О нас</a>
+      <a href="#" class="hover:text-cyan-300 transition">Поддержка</a>
+      <a href="#" class="hover:text-cyan-300 transition">API</a>
     </div>
   </footer>
 
@@ -115,9 +135,9 @@
       const usdtPairs = data.filter(item => item.symbol.endsWith('USDT'));
       usdtPairs.forEach((item, i) => {
         const tr = document.createElement('tr');
-        tr.className = 'hover:bg-blue-800/50 transition cursor-pointer';
+        tr.className = 'hover:bg-cyan-500/20 transition cursor-pointer';
         tr.innerHTML = `
-          <td class='py-2 font-medium text-blue-300' onclick="loadTradingView('${item.symbol}')">${item.symbol}</td>
+          <td class='py-2 font-medium text-cyan-300' onclick="loadTradingView('${item.symbol}')">${item.symbol}</td>
           <td class='py-2'>${parseFloat(item.lastPrice).toFixed(4)}</td>
           <td class='py-2 ${item.priceChangePercent >= 0 ? 'text-green-400' : 'text-red-400'}'>${item.priceChangePercent}%</td>
         `;
@@ -125,9 +145,9 @@
 
         if (i < 10) {
           const div = document.createElement('div');
-          div.className = 'flex justify-between border-b border-blue-700 pb-1';
+          div.className = 'flex justify-between border-b border-cyan-500/30 pb-1';
           div.innerHTML = `
-            <span class='text-blue-300 font-medium'>${item.symbol}</span>
+            <span class='text-cyan-300 font-medium'>${item.symbol}</span>
             <span>${parseFloat(item.lastPrice).toFixed(2)}</span>
             <span class='${item.priceChangePercent >= 0 ? 'text-green-400' : 'text-red-400'}'>${item.priceChangePercent}%</span>
           `;
