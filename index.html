@@ -21,15 +21,12 @@
     .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.15); }
     /* Модалка */
     .modal { display: none; position: fixed; z-index: 50; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; backdrop-filter: blur(6px); }
-    .modal-content { background: rgba(255,255,255,0.95); padding: 2rem; border-radius: 1rem; max-width: 500px; width: 100%; color: #0f172a; box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: fadeIn 0.4s ease; }
+    .modal-content { background: rgba(255,255,255,0.95); padding: 2rem; border-radius: 1rem; max-width: 600px; width: 100%; color: #0f172a; box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: fadeIn 0.4s ease; }
     /* Кнопки с градиентом */
     .btn-gradient { background: linear-gradient(90deg,#3b82f6,#06b6d4,#3b82f6); background-size: 200% 200%; animation: gradientMove 4s infinite alternate; transition: all 0.3s ease; }
     .btn-gradient:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 0 25px rgba(6,182,212,0.6); }
     @keyframes gradientMove { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    /* Светлая тема */
-    body.light { background: #f8fafc; color: #0f172a; animation: none; }
-    body.light .glass { background: rgba(255,255,255,0.85) !important; color: #0f172a !important; border-color: rgba(0,0,0,0.1) !important; }
   </style>
 </head>
 <body class="text-white flex flex-col min-h-screen font-sans">
@@ -40,7 +37,7 @@
     <nav class="flex flex-wrap gap-4 text-gray-200 font-medium">
       <a href="#" class="hover:text-cyan-300 transition">Торги</a>
       <a href="#" class="hover:text-cyan-300 transition" onclick="openConverter()">Конвертация</a>
-      <a href="#" class="hover:text-cyan-300 transition">Кошелек</a>
+      <a href="#" class="hover:text-cyan-300 transition" onclick="openWallet()">Кошелек</a>
       <a href="#" class="hover:text-cyan-300 transition">Профиль</a>
     </nav>
     <div class="flex items-center gap-4">
@@ -82,28 +79,44 @@
 
   </main>
 
-  <!-- Converter -->
-  <div id="converterModal" class="modal flex">
+  <!-- Wallet Modal -->
+  <div id="walletModal" class="modal flex">
     <div class="modal-content">
-      <h2 class="text-xl md:text-2xl font-semibold mb-6 text-blue-600">💱 Конвертация</h2>
-      <form class="space-y-5">
-        <div>
-          <label class="text-sm text-gray-600">Из</label>
-          <select id="fromCurrency" class="w-full mt-1 p-3 bg-gray-100 rounded-lg border border-gray-300"></select>
-        </div>
-        <div>
-          <label class="text-sm text-gray-600">В</label>
-          <select id="toCurrency" class="w-full mt-1 p-3 bg-gray-100 rounded-lg border border-gray-300"></select>
-        </div>
-        <div>
-          <label class="text-sm text-gray-600">Сумма</label>
-          <input type="number" placeholder="Введите сумму" class="w-full mt-1 p-3 rounded-lg bg-gray-100 border border-gray-300" />
-        </div>
-        <div class="flex flex-col md:flex-row gap-4">
-          <button type="button" class="flex-1 py-3 btn-gradient text-white rounded-xl font-semibold text-lg">Конвертировать</button>
-          <button type="button" onclick="closeConverter()" class="flex-1 py-3 bg-gray-400 hover:bg-gray-300 text-black rounded-xl font-semibold text-lg">Закрыть</button>
-        </div>
+      <h2 class="text-2xl font-semibold mb-6 text-blue-600">💼 Мой кошелек</h2>
+      <div id="walletBalances" class="space-y-3 mb-6 text-gray-800"></div>
+      <div class="flex gap-4 mb-6">
+        <button onclick="openDeposit()" class="flex-1 py-3 btn-gradient text-white rounded-xl font-semibold">Депозит</button>
+        <button onclick="openWithdraw()" class="flex-1 py-3 bg-red-500 hover:bg-red-400 text-white rounded-xl font-semibold">Вывод</button>
+      </div>
+      <h3 class="text-lg font-semibold mb-3 text-blue-500">Конвертация</h3>
+      <form onsubmit="convertCoins(event)" class="space-y-4">
+        <div><label class="text-sm text-gray-600">Из</label><select id="walletFrom" class="w-full p-2 border rounded"></select></div>
+        <div><label class="text-sm text-gray-600">В</label><select id="walletTo" class="w-full p-2 border rounded"></select></div>
+        <div><label class="text-sm text-gray-600">Сумма</label><input type="number" id="walletAmount" class="w-full p-2 border rounded"/></div>
+        <button type="submit" class="w-full py-2 btn-gradient text-white rounded-lg font-semibold">Конвертировать</button>
       </form>
+      <div class="mt-6 text-right">
+        <button onclick="closeWallet()" class="px-4 py-2 bg-gray-400 hover:bg-gray-300 rounded-md">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Deposit Modal -->
+  <div id="depositModal" class="modal flex">
+    <div class="modal-content">
+      <h2 class="text-xl font-semibold mb-4 text-blue-600">Пополнение</h2>
+      <p class="mb-2">Выберите монету для депозита:</p>
+      <select id="depositCoin" onchange="showDepositAddress()" class="w-full p-2 border rounded mb-4">
+        <option value="">-- Выбрать --</option>
+        <option value="USDT">USDT</option>
+        <option value="BNB">BNB</option>
+        <option value="BTC">BTC</option>
+        <option value="ETH">ETH</option>
+      </select>
+      <div id="depositAddress" class="p-3 bg-gray-100 rounded text-gray-800 font-mono"></div>
+      <div class="mt-6 text-right">
+        <button onclick="closeDeposit()" class="px-4 py-2 bg-gray-400 hover:bg-gray-300 rounded-md">Закрыть</button>
+      </div>
     </div>
   </div>
 
@@ -122,68 +135,87 @@
     let balance = 10000;
     document.getElementById('balance').innerText = balance;
 
+    // Балансы пользователя
+    let balances = { USDT: 10000, BTC: 0, ETH: 0, BNB: 0 };
+
+    // Открытие/закрытие модалок
+    function openWallet(){ renderWallet(); document.getElementById('walletModal').style.display = 'flex'; }
+    function closeWallet(){ document.getElementById('walletModal').style.display = 'none'; }
+    function openDeposit(){ document.getElementById('depositModal').style.display = 'flex'; }
+    function closeDeposit(){ document.getElementById('depositModal').style.display = 'none'; }
+    function openWithdraw(){ alert("Вывод пока тестовый 🚧"); }
+
+    // Рендер балансов
+    function renderWallet(){
+      let container = document.getElementById('walletBalances');
+      container.innerHTML = '';
+      let total = 0;
+      let rates = { USDT:1, BTC:27000, ETH:1700, BNB:230 };
+      for(let coin in balances){
+        let value = balances[coin];
+        container.innerHTML += `<div class='flex justify-between'><span>${coin}</span><span>${value.toFixed(6)}</span></div>`;
+        total += value * rates[coin];
+      }
+      container.innerHTML += `<hr class='my-2'/><div class='flex justify-between font-bold'><span>Итого в USD</span><span>${total.toFixed(2)} $</span></div>`;
+      let from = document.getElementById('walletFrom'); let to = document.getElementById('walletTo');
+      from.innerHTML = ''; to.innerHTML = '';
+      for(let coin in balances){ from.innerHTML += `<option value='${coin}'>${coin}</option>`; to.innerHTML += `<option value='${coin}'>${coin}</option>`; }
+    }
+
+    // Конвертация
+    function convertCoins(e){
+      e.preventDefault();
+      let from = document.getElementById('walletFrom').value;
+      let to = document.getElementById('walletTo').value;
+      let amount = parseFloat(document.getElementById('walletAmount').value);
+      if(from===to){ alert("Выберите разные монеты!"); return; }
+      if(amount > balances[from]){ alert("Недостаточно средств!"); return; }
+      let rates = { USDT:1, BTC:27000, ETH:1700, BNB:230 };
+      balances[from]-=amount; let usdValue = amount*rates[from]; let converted=usdValue/rates[to]; balances[to]+=converted;
+      renderWallet(); alert(`✅ Конвертировано ${amount} ${from} → ${converted.toFixed(6)} ${to}`);
+    }
+
+    // Адреса депозитов
+    function showDepositAddress(){
+      let coin = document.getElementById('depositCoin').value;
+      let addressDiv = document.getElementById('depositAddress');
+      let addresses = {
+        USDT: 'TKoNcfXsXcBdADqZNAaD9y1FzooS2k6cst',
+        BNB: '0xb75277051F1733c621286B258D3510dA1667008A',
+        BTC: 'bc1q80ywt5h3j32szkg8c276hak48hp0lqcrp3tkpe',
+        ETH: '0x1234567890abcdef1234567890abcdef12345678'
+      };
+      addressDiv.innerText = addresses[coin] ? `Ваш адрес для ${coin}: ${addresses[coin]}` : '';
+    }
+
+    // Загрузка пар
     async function loadPairs() {
       const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
       const data = await res.json();
       const tbody = document.getElementById('pairsBody');
-      const fromSelect = document.getElementById('fromCurrency');
-      const toSelect = document.getElementById('toCurrency');
       const topAssetsDiv = document.getElementById('topAssets');
-      tbody.innerHTML = '';
-      topAssetsDiv.innerHTML = '';
-
+      tbody.innerHTML = ''; topAssetsDiv.innerHTML = '';
       const usdtPairs = data.filter(item => item.symbol.endsWith('USDT'));
       usdtPairs.forEach((item, i) => {
-        const tr = document.createElement('tr');
-        tr.className = 'hover:bg-cyan-500/20 transition cursor-pointer';
-        tr.innerHTML = `
-          <td class='py-2 font-medium text-cyan-300' onclick="loadTradingView('${item.symbol}')">${item.symbol}</td>
-          <td class='py-2'>${parseFloat(item.lastPrice).toFixed(4)}</td>
-          <td class='py-2 ${item.priceChangePercent >= 0 ? 'text-green-400' : 'text-red-400'}'>${item.priceChangePercent}%</td>
-        `;
+        const tr=document.createElement('tr');
+        tr.className='hover:bg-cyan-500/20 transition cursor-pointer';
+        tr.innerHTML=`<td class='py-2 font-medium text-cyan-300' onclick=\"loadTradingView('${item.symbol}')\">${item.symbol}</td><td class='py-2'>${parseFloat(item.lastPrice).toFixed(4)}</td><td class='py-2 ${item.priceChangePercent>=0?'text-green-400':'text-red-400'}'>${item.priceChangePercent}%</td>`;
         tbody.appendChild(tr);
-
-        if (i < 10) {
-          const div = document.createElement('div');
-          div.className = 'flex justify-between border-b border-cyan-500/30 pb-1';
-          div.innerHTML = `
-            <span class='text-cyan-300 font-medium'>${item.symbol}</span>
-            <span>${parseFloat(item.lastPrice).toFixed(2)}</span>
-            <span class='${item.priceChangePercent >= 0 ? 'text-green-400' : 'text-red-400'}'>${item.priceChangePercent}%</span>
-          `;
-          topAssetsDiv.appendChild(div);
-        }
-
-        let opt1 = document.createElement('option');
-        opt1.value = item.symbol.replace('USDT','');
-        opt1.text = item.symbol.replace('USDT','');
-        fromSelect.appendChild(opt1.cloneNode(true));
-        toSelect.appendChild(opt1);
+        if(i<10){ const div=document.createElement('div'); div.className='flex justify-between border-b border-cyan-500/30 pb-1'; div.innerHTML=`<span class='text-cyan-300 font-medium'>${item.symbol}</span><span>${parseFloat(item.lastPrice).toFixed(2)}</span><span class='${item.priceChangePercent>=0?'text-green-400':'text-red-400'}'>${item.priceChangePercent}%</span>`; topAssetsDiv.appendChild(div);}
       });
     }
 
     function loadTradingView(symbol){
-      const theme = document.body.classList.contains('light') ? 'light' : 'dark';
-      const iframe = document.getElementById('tradingview_iframe');
-      iframe.src = `https://s.tradingview.com/widgetembed/?symbol=BINANCE:${symbol}&interval=60&theme=${theme}&style=1&locale=ru`;
+      const iframe=document.getElementById('tradingview_iframe'); iframe.src=`https://s.tradingview.com/widgetembed/?symbol=BINANCE:${symbol}&interval=60&theme=dark&style=1&locale=ru`;
     }
-
-    function openConverter(){ document.getElementById('converterModal').style.display = 'flex'; }
-    function closeConverter(){ document.getElementById('converterModal').style.display = 'none'; }
 
     function toggleTheme(){
       document.body.classList.toggle('light');
-      const iframe = document.getElementById('tradingview_iframe');
-      let currentSrc = iframe.src;
-      if(currentSrc.includes('theme=dark')){
-        iframe.src = currentSrc.replace('theme=dark','theme=light');
-      } else {
-        iframe.src = currentSrc.replace('theme=light','theme=dark');
-      }
+      const iframe=document.getElementById('tradingview_iframe');
+      iframe.src=iframe.src.includes('theme=dark')?iframe.src.replace('theme=dark','theme=light'):iframe.src.replace('theme=light','theme=dark');
     }
 
     loadPairs();
   </script>
-
 </body>
 </html>
